@@ -69,7 +69,7 @@ module.exports.getUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
 
-  userSchema
+  User
     .findById(userId)
     .then((user) => {
       if (!user) {
@@ -89,7 +89,7 @@ module.exports.getUserById = (req, res, next) => {
 module.exports.getCurrentUser = (req, res, next) => {
   const { _id } = req.user;
 
-  userSchema
+  User
     .findById(_id)
     .then((user) => {
       if (!user) {
