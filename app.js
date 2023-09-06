@@ -11,7 +11,6 @@ const { validateUrl } = require('./middlewares/validation');
 const { PORT = 3000 } = process.env;
 const app = express();
 
-mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -19,7 +18,7 @@ app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
     password: Joi.string().required()
-  })
+  }).unknown(true)
 }), login);
 app.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -28,13 +27,14 @@ app.post('/signup', celebrate({
     email: Joi.string().required().email(),
     password: Joi.string().required(),
     avatar: Joi.string().regex(validateUrl)
-  })
+  }).unknown(true)
 }), createUser);
 
 app.use(auth);
 app.use(router);
 app.use(errors());
 app.use(defaultError);
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb');
 app.listen(PORT, () => {
   console.log('Сервер запущен');
 });
