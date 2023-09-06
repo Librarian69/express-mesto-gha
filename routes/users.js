@@ -8,9 +8,11 @@ const { validateUrl } = require('../middlewares/validation');
 
 userRouter.get('/', getUsers);
 
+userRouter.get('/me', getCurrentUser);
+
 userRouter.get('/:userId', celebrate({
   params: Joi.object().keys({
-    userId: Joi.string().length(24).hex()
+    userId: Joi.string().hex().length(24),
   })
 }), getUserById);
 
@@ -25,7 +27,5 @@ userRouter.patch('/me/avatar', celebrate({
     avatar: Joi.string().required().regex(validateUrl)
   })
 }), updateAvatar);
-
-userRouter.get('/me', getCurrentUser);
 
 module.exports = userRouter;

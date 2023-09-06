@@ -67,27 +67,33 @@ module.exports.getUsers = (req, res, next) => {
 };
 
 module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
+  const { userId } = req.params;
+
+  userSchema
+    .findById(userId)
     .then((user) => {
       if (!user) {
-        throw new NotFound('пользователь не найден.');
+        throw new NotFound('Пользователь по данному _id не найден');
       }
       return res.send(user);
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequest('переданы некорректные данные пользователя'));
+    .catch((error) => {
+      if (error.name === 'CastError') {
+        next(new BadRequest('Неверный id'));
       } else {
-        next(err);
+        next(error);
       }
     });
 };
 
 module.exports.getCurrentUser = (req, res, next) => {
-  User.findById(req.user._id)
+  const { _id } = req.user;
+
+  userSchema
+    .findById(_id)
     .then((user) => {
       if (!user) {
-        throw new NotFound('пользователь не найден.');
+        throw new NotFound('Пользователь по данному _id не найден');
       }
       return res.send(user);
     })
