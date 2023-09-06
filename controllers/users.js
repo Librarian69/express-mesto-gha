@@ -11,27 +11,27 @@ module.exports.createUser = (req, res, next) => {
     name, about, avatar, email, password
   } = req.body;
 
-  bcrypt.hash(password, 10).then((hash) => {
-    User.create({
-      name, about, avatar, email, password: hash
-    })
-      .then((user) => res.status(201).send({
-        name: user.name,
-        about: user.about,
-        avatar: user.avatar,
-        email: user.email,
-        _id: user._id,
+  bcrypt.hash(password, 10)
+    .then((hash) => User
+      .create({
+        name, about, avatar, email, password: hash
       }))
-      .catch((err) => {
-        if (err.name === 'ValidationError') {
-          next(new BadRequest('переданы некорректные данные пользователя'));
-        } else if (err.code === 11000) {
-          next(new Conflict('Пользователь с таки Email уже существует'));
-        } else {
-          next(err);
-        }
-      });
-  });
+    .then((user) => res.status(201).send({
+      email: user.email,
+      name: user.name,
+      about: user.about,
+      avatar: user.avatar,
+      _id: user._id,
+    }))
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new Conflict('Пользователь с таким email уже существует'));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequest('Переданы некорректные данные'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.login = (req, res, next) => {
@@ -40,26 +40,28 @@ module.exports.login = (req, res, next) => {
   return User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
-        throw new Unauthrized('переданы некорректные данные пользователя');
+        throw new Unauthrized('Пользователь не найден');
       }
-      return bcrypt.compare(password, user.password).tnen((match) => {
-        if (!match) {
-          throw new Unauthrized('переданы некорректные данные пользователя');
-        }
-        const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
-        return res.send({ token });
-      });
+      return bcrypt.compare(password, user.password)
+        .then((match) => {
+          if (!match) {
+            throw new Unauthrized('Не правильно указан логин или пароль');
+          }
+          const token = jwt.sign(
+            { _id: user._id },
+            'super-secret-key',
+            { expiresIn: '7d' },
+          );
+          return res.send({ token });
+        });
     })
     .catch(next);
 };
 
 module.exports.getUsers = (req, res, next) => {
   User.find({})
-    .then((user) => {
-      if (!user) {
-        throw new NotFound('пользователь не найден.');
-      }
-      return res.send(user);
+    .then((users) => {
+      res.send(users);
     })
     .catch(next);
 };
