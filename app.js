@@ -1,15 +1,21 @@
+require('dotenv').config();
+
 const express = require('express');
 const mongoose = require('mongoose');
 const { errors, celebrate, Joi } = require('celebrate');
 const bodyParser = require('body-parser');
 const helmet = require('helmet');
+const { errorLogger } = require('express-winston');
 const router = require('./routes');
 const auth = require('./middlewares/auth');
 const defaultErr = require('./errors/defaultError');
 const NotFound = require('./errors/notFound');
 const { login, createUser } = require('./controllers/users');
 const { validateUrl } = require('./middlewares/validation');
+const cors = require('./middlewares/cors');
+const { requestLogger } = require('./middlewares/logger');
 
+const { PORT = 3000 } = process.env;
 const app = express();
 
 app.use(helmet());
@@ -17,6 +23,10 @@ app.use(helmet());
 app.use(express.json());
 
 app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(requestLogger);
+
+app.use(cors);
 
 app.post(
   '/signin',
@@ -51,6 +61,8 @@ app.use(auth);
 
 app.use(router);
 
+app.use(errorLogger);
+
 app.use(errors());
 
 app.use((req, res, next) => {
@@ -61,6 +73,6 @@ app.use(defaultErr);
 
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
-app.listen(3000, () => {
+app.listen(PORT, () => {
   console.log('server started on port 3000');
 });
