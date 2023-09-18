@@ -8,7 +8,6 @@ const helmet = require('helmet');
 const router = require('./routes');
 const auth = require('./middlewares/auth');
 const defaultErr = require('./errors/defaultError');
-const NotFound = require('./errors/notFound');
 const { login, createUser } = require('./controllers/users');
 const { validateUrl } = require('./middlewares/validation');
 const cors = require('./middlewares/cors');
