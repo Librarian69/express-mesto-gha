@@ -15,32 +15,34 @@ module.exports.createUser = (req, res, next) => {
   } = req.body;
 
   bcrypt.hash(password, 10)
-    .then((hash) => User
-      .create({
-        name, about, avatar, email, password: hash
-      }))
-    .then((user) => res.status(201).send({
-      email: user.email,
-      name: user.name,
-      about: user.about,
-      avatar: user.avatar,
-      _id: user._id,
-    }))
-    .catch((err) => {
-      if (err.code === 11000) {
-        next(new Conflict('Пользователь с таким email уже существует'));
-      } else if (err.name === 'ValidationError') {
-        next(new BadRequest('Переданы некорректные данные'));
-      } else {
-        next(err);
-      }
-    });
+    .then((hash) => {
+      User
+        .create({
+          name, about, avatar, email, password: hash
+        })
+        .then((user) => res.status(201).send({
+          email: user.email,
+          name: user.name,
+          about: user.about,
+          avatar: user.avatar,
+          _id: user._id,
+        }))
+        .catch((err) => {
+          if (err.code === 11000) {
+            next(new Conflict('Пользователь с таким email уже существует'));
+          } else if (err.name === 'ValidationError') {
+            next(new BadRequest('Переданы некорректные данные'));
+          } else {
+            next(err);
+          }
+        });
+    }).catch(next);
 };
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
-  return User.findOne({ email }).select('+password')
+  User.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         throw new Unauthrized('Пользователь не найден');
@@ -48,7 +50,7 @@ module.exports.login = (req, res, next) => {
       return bcrypt.compare(password, user.password)
         .then((match) => {
           if (!match) {
-            throw new Unauthrized('Не правильно указан логин или пароль');
+            return next(new Unauthrized('Не правильно указан логин или пароль'));
           }
           const token = jwt.sign(
             { _id: user._id },
